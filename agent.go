@@ -44,6 +44,9 @@ func (a *Agent) Do(req *http.Request) (*http.Response, error) {
 	}
 	res, err := a.Client.Do(req)
 	cancel()
+	if err != nil {
+		return nil, err
+	}
 
 	err = a.ResponseHooks.Do(res)
 	if err != nil {

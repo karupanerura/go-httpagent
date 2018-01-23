@@ -69,11 +69,11 @@ func (h *RequestHooks) Len() int {
 	return len(h.hooks)
 }
 
-type DumperRequestHook struct {
+type RequestDumperHook struct {
 	Writer io.Writer
 }
 
-func (h *DumperRequestHook) Do(req *http.Request) error {
+func (h *RequestDumperHook) Do(req *http.Request) error {
 	dump, err := httputil.DumpRequestOut(req, true)
 	if err != nil {
 		return err
