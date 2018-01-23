@@ -1,0 +1,15 @@
+language: go
+sudo: false
+
+go:
+  - "1.8"
+  - "1.9"
+
+before_install:
+  - go get -d -v -t ./...
+
+script:
+  - go test -race -coverprofile=coverage.out -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
