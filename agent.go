@@ -14,7 +14,7 @@ func NewAgent(client Client) *Agent {
 		Client:        client,
 		DefaultHeader: header,
 		RequestHooks: NewRequestHooks(
-			&RequestHeaderHook{Header: header},
+			&RequestHeaderHook{Header: header, SkipIfExists: true},
 		),
 		ResponseHooks: NewResponseHooks(),
 	}

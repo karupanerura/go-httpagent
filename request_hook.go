@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
+	"net/textproto"
 )
 
 type RequestHook interface {
@@ -88,13 +89,25 @@ func (h *RequestDumperHook) Do(req *http.Request) error {
 }
 
 type RequestHeaderHook struct {
-	Header http.Header
+	Header       http.Header
+	Add          bool
+	SkipIfExists bool
 }
 
 func (h *RequestHeaderHook) Do(req *http.Request) error {
 	for key := range h.Header {
+		if h.SkipIfExists {
+			if _, ok := req.Header[textproto.CanonicalMIMEHeaderKey(key)]; ok {
+				continue
+			}
+		}
+
 		value := h.Header.Get(key)
-		req.Header.Set(key, value)
+		if h.Add {
+			req.Header.Add(key, value)
+		} else {
+			req.Header.Set(key, value)
+		}
 	}
 
 	return nil

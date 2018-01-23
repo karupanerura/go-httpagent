@@ -59,12 +59,24 @@ func TestAgentDo(t *testing.T) {
 		agent := NewAgent(http.DefaultClient)
 		agent.DefaultHeader.Set("Test-Increment", "100")
 
-		req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
+		t.Run("OK", func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
 
-		shouldBeOK(t, agent, req, 101)
+			shouldBeOK(t, agent, req, 101)
+		})
+
+		t.Run("NoOverwrite", func(t *testing.T) {
+			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req.Header.Set("Test-Increment", "1000")
+			shouldBeOK(t, agent, req, 1102)
+		})
 	})
 
 	t.Run("WithTimeout", func(t *testing.T) {
@@ -213,6 +225,7 @@ func setupTestServer(t *testing.T) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		count := atomic.AddInt32(&c, 1)
 		if slp := r.Header.Get("Test-Sleep"); slp != "" {
+			t.Logf("Test-Sleep: %s", slp)
 			i, err := strconv.Atoi(slp)
 			if err != nil {
 				t.Fatal(err)
@@ -220,11 +233,11 @@ func setupTestServer(t *testing.T) *httptest.Server {
 			time.Sleep(time.Duration(i) * time.Second)
 		}
 		if incr := r.Header.Get("Test-Increment"); incr != "" {
+			t.Logf("Test-Increment: %s", incr)
 			i, err := strconv.Atoi(incr)
 			if err != nil {
 				t.Fatal(err)
 			}
-			t.Logf("Test-Increment: %s", incr)
 			count = atomic.AddInt32(&c, int32(i))
 		}
 
