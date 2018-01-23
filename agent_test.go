@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -44,11 +45,7 @@ func TestAgentDo(t *testing.T) {
 		ts := setupTestServer(t)
 		defer ts.Close()
 
-		req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-		if err != nil {
-			t.Fatal(err)
-		}
-
+		req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 		shouldBeOK(t, DefaultAgent, req, 1)
 	})
 
@@ -60,20 +57,12 @@ func TestAgentDo(t *testing.T) {
 		agent.DefaultHeader.Set("Test-Increment", "100")
 
 		t.Run("OK", func(t *testing.T) {
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeOK(t, agent, req, 101)
 		})
 
 		t.Run("NoOverwrite", func(t *testing.T) {
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			req.Header.Set("Test-Increment", "1000")
 			shouldBeOK(t, agent, req, 1102)
 		})
@@ -87,10 +76,7 @@ func TestAgentDo(t *testing.T) {
 			ts := setupTestServer(t)
 			defer ts.Close()
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeOK(t, agent, req, 1)
 		})
 
@@ -98,10 +84,7 @@ func TestAgentDo(t *testing.T) {
 			ts := setupTestServer(t)
 			defer ts.Close()
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			req.Header.Set("Test-Sleep", "4")
 			shouldBeError(t, agent, req, &url.Error{Err: context.DeadlineExceeded})
 		})
@@ -110,19 +93,16 @@ func TestAgentDo(t *testing.T) {
 			ts := setupTestServer(t)
 			defer ts.Close()
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
 			ctx := context.Background()
 			ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 			defer cancel()
 
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			req.Header.Set("Test-Sleep", "2")
+			req = req.WithContext(ctx)
 
 			before := time.Now()
-			shouldBeError(t, agent, req.WithContext(ctx), &url.Error{Err: context.DeadlineExceeded})
+			shouldBeError(t, agent, req, &url.Error{Err: context.DeadlineExceeded})
 			after := time.Now()
 
 			if d := after.Sub(before); d > time.Second*3 {
@@ -144,10 +124,7 @@ func TestAgentDo(t *testing.T) {
 				return nil
 			}))
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeOK(t, agent, req, 1)
 			if called != 1 {
 				t.Errorf("Request hook should be called at once, but it called %d times", called)
@@ -165,11 +142,7 @@ func TestAgentDo(t *testing.T) {
 				return expectedErr
 			}))
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeError(t, agent, req, expectedErr)
 			shouldBeOK(t, DefaultAgent, req, 1)
 		})
@@ -188,10 +161,7 @@ func TestAgentDo(t *testing.T) {
 				return nil
 			}))
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeOK(t, agent, req, 1)
 			if called != 1 {
 				t.Errorf("Request hook should be called at once, but it called %d times", called)
@@ -209,11 +179,7 @@ func TestAgentDo(t *testing.T) {
 				return expectedErr
 			}))
 
-			req, err := http.NewRequest(http.MethodGet, ts.URL, nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-
+			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeError(t, agent, req, expectedErr)
 			shouldBeOK(t, DefaultAgent, req, 2)
 		})
@@ -245,6 +211,15 @@ func setupTestServer(t *testing.T) *httptest.Server {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "OK: count=%d", count)
 	}))
+}
+
+func mustNewRequest(t *testing.T, method, u string, body io.Reader) *http.Request {
+	req, err := http.NewRequest(method, u, body)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return req
 }
 
 func shouldBeOK(t *testing.T, agent *Agent, req *http.Request, count int) {
