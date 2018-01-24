@@ -11,7 +11,7 @@ Provides hooks, timeout, and default header for http.Client and any other simila
 
 ```go
 agent := httpagent.NewAgent(http.DefaultClient)
-agent.Timeout = 10 * time.Second
+agent.DefaultTimeout = 10 * time.Second
 agent.DefaultHeader.Set("User-Agent", "go-httpagent/0.1")
 agent.RequestHooks.Append(&httpagent.RequestDumperHook{Writer: os.Stderr})
 agent.ResponseHooks.Append(&httpagent.ResponseDumperHook{Writer: os.Stderr})

@@ -22,8 +22,8 @@ func TestNewAgent(t *testing.T) {
 	if agent.Client != client {
 		t.Errorf("agent.Client should be argument's client, but got: %#v", agent.Client)
 	}
-	if agent.Timeout != 0 {
-		t.Errorf("agent.Timeout should be zero, but got: %#v", agent.Timeout)
+	if agent.DefaultTimeout != 0 {
+		t.Errorf("agent.DefaultTimeout should be zero, but got: %#v", agent.DefaultTimeout)
 	}
 	if len(agent.DefaultHeader) != 0 {
 		t.Errorf("agent.DefaultHeader should be empty, but got: %#v", agent.DefaultHeader)
@@ -68,9 +68,9 @@ func TestAgentDo(t *testing.T) {
 		})
 	})
 
-	t.Run("WithTimeout", func(t *testing.T) {
+	t.Run("WithDefaultTimeout", func(t *testing.T) {
 		agent := NewAgent(http.DefaultClient)
-		agent.Timeout = 3 * time.Second
+		agent.DefaultTimeout = 3 * time.Second
 
 		t.Run("OK", func(t *testing.T) {
 			ts := setupTestServer(t)
