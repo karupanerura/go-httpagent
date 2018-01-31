@@ -13,6 +13,8 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+
+	mockhttp "github.com/karupanerura/go-mock-http-response"
 )
 
 func TestNewAgent(t *testing.T) {
@@ -47,6 +49,25 @@ func TestAgentDo(t *testing.T) {
 
 		req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 		shouldBeOK(t, DefaultAgent, req, 1)
+	})
+
+	t.Run("WithContextClient", func(t *testing.T) {
+		ts := setupTestServer(t)
+		defer ts.Close()
+
+		client := mockhttp.NewResponseMock(http.StatusAccepted, map[string]string{
+			"Content-Type": "text/plain",
+		}, []byte("Accepted")).MakeClient()
+
+		req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
+		req = req.WithContext(ContextWithClient(req.Context(), client))
+		res, err := DefaultAgent.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if res.StatusCode != http.StatusAccepted {
+			t.Errorf("Unexpected response: %#v", res)
+		}
 	})
 
 	t.Run("WithDefaultHeader", func(t *testing.T) {

@@ -31,23 +31,34 @@ type Agent struct {
 func nop() {}
 
 func (a *Agent) Do(req *http.Request) (*http.Response, error) {
+	// do request hooks
 	err := a.RequestHooks.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
+	// get client
+	client := contextClient(req.Context())
+	if client == nil {
+		client = a.Client
+	}
+
+	// apply timeout
 	cancel := nop
 	if a.DefaultTimeout > 0 {
 		var ctx context.Context
 		ctx, cancel = context.WithTimeout(req.Context(), a.DefaultTimeout)
 		req = req.WithContext(ctx)
 	}
-	res, err := a.Client.Do(req)
+
+	// do request
+	res, err := client.Do(req)
 	cancel()
 	if err != nil {
 		return nil, err
 	}
 
+	// do response hooks
 	err = a.ResponseHooks.Do(res)
 	if err != nil {
 		return nil, err

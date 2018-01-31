@@ -1,6 +1,7 @@
 package httpagent
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -19,5 +20,24 @@ func TestClientFunc(t *testing.T) {
 	res, _ := client.Do(req)
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Unexpected response: %#v", res)
+	}
+}
+
+func TestContextWithClient(t *testing.T) {
+	ctx1 := context.Background()
+	if client := contextClient(ctx1); client != nil {
+		t.Errorf("Initial context is invalid: %#v", ctx1)
+	}
+
+	ctx2 := ContextWithClient(ctx1, http.DefaultClient)
+	if ctx1 == ctx2 {
+		t.Errorf("Same context is returned: %#v", ctx2)
+	}
+
+	client := contextClient(ctx2)
+	if httpClient, ok := client.(*http.Client); !ok {
+		t.Errorf("Client is invalid: %#v", client)
+	} else if httpClient != http.DefaultClient {
+		t.Errorf("Client is invalid: %#v", httpClient)
 	}
 }
