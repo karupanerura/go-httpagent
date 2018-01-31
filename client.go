@@ -19,9 +19,9 @@ func (a ClientFunc) Do(req *http.Request) (*http.Response, error) {
 	return a(req)
 }
 
-type clientContextKeyType int
+type clientContextKeyType struct{}
 
-var clientContextKey clientContextKeyType = 1
+var clientContextKey = clientContextKeyType{}
 
 func ContextWithClient(ctx context.Context, client Client) context.Context {
 	if client == nil {
