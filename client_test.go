@@ -24,20 +24,36 @@ func TestClientFunc(t *testing.T) {
 }
 
 func TestContextWithClient(t *testing.T) {
-	ctx1 := context.Background()
-	if client := contextClient(ctx1); client != nil {
-		t.Errorf("Initial context is invalid: %#v", ctx1)
-	}
+	t.Run("OK", func(t *testing.T) {
+		ctx1 := context.Background()
+		if client := contextClient(ctx1); client != nil {
+			t.Errorf("Initial context is invalid: %#v", ctx1)
+		}
 
-	ctx2 := ContextWithClient(ctx1, http.DefaultClient)
-	if ctx1 == ctx2 {
-		t.Errorf("Same context is returned: %#v", ctx2)
-	}
+		ctx2 := ContextWithClient(ctx1, http.DefaultClient)
+		if ctx1 == ctx2 {
+			t.Errorf("Same context is returned: %#v", ctx2)
+		}
 
-	client := contextClient(ctx2)
-	if httpClient, ok := client.(*http.Client); !ok {
-		t.Errorf("Client is invalid: %#v", client)
-	} else if httpClient != http.DefaultClient {
-		t.Errorf("Client is invalid: %#v", httpClient)
-	}
+		client := contextClient(ctx2)
+		if httpClient, ok := client.(*http.Client); !ok {
+			t.Errorf("Client is invalid: %#v", client)
+		} else if httpClient != http.DefaultClient {
+			t.Errorf("Client is invalid: %#v", httpClient)
+		}
+	})
+
+	t.Run("Panic", func(t *testing.T) {
+		ctx := context.Background()
+		if ctx == nil {
+			t.Fatal("ctx is should not be nil")
+		}
+
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("The code did not panic")
+			}
+		}()
+		ContextWithClient(ctx, nil)
+	})
 }

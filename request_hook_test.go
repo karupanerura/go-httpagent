@@ -52,6 +52,16 @@ func TestRequestHookFunc(t *testing.T) {
 }
 
 func TestRequestHooks(t *testing.T) {
+	t.Run("Panic", func(t *testing.T) {
+		hooks := NewRequestHooks()
+
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("The code did not panic")
+			}
+		}()
+		hooks.Append(nil)
+	})
 	t.Run("Simple", func(t *testing.T) {
 		req := mustNewRequest(t, http.MethodGet, "http://example.com/", nil)
 
