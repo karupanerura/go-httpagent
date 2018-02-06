@@ -69,6 +69,12 @@ func (h *ResponseHooks) Len() int {
 	return len(h.hooks)
 }
 
+func (h *ResponseHooks) Clone() *ResponseHooks {
+	hooks := make([]ResponseHook, len(h.hooks))
+	copy(hooks, h.hooks)
+	return &ResponseHooks{hooks: hooks}
+}
+
 type ResponseDumperHook struct {
 	Writer io.Writer
 }
@@ -82,6 +88,10 @@ func (h *ResponseDumperHook) Do(res *http.Response) error {
 	var n, wrote int
 	for wrote < len(dump) {
 		n, err = h.Writer.Write(dump)
+		if err != nil {
+			return err
+		}
+
 		wrote += n
 	}
 	return err

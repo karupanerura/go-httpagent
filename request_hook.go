@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httputil"
-	"net/textproto"
 )
 
 type RequestHook interface {
@@ -70,6 +69,12 @@ func (h *RequestHooks) Len() int {
 	return len(h.hooks)
 }
 
+func (h *RequestHooks) Clone() *RequestHooks {
+	hooks := make([]RequestHook, len(h.hooks))
+	copy(hooks, h.hooks)
+	return &RequestHooks{hooks: hooks}
+}
+
 type RequestDumperHook struct {
 	Writer io.Writer
 }
@@ -83,6 +88,10 @@ func (h *RequestDumperHook) Do(req *http.Request) error {
 	var n, wrote int
 	for wrote < len(dump) {
 		n, err = h.Writer.Write(dump)
+		if err != nil {
+			return err
+		}
+
 		wrote += n
 	}
 	return err
@@ -97,7 +106,7 @@ type RequestHeaderHook struct {
 func (h *RequestHeaderHook) Do(req *http.Request) error {
 	for key := range h.Header {
 		if h.SkipIfExists {
-			if _, ok := req.Header[textproto.CanonicalMIMEHeaderKey(key)]; ok {
+			if _, ok := req.Header[http.CanonicalHeaderKey(key)]; ok {
 				continue
 			}
 		}

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strconv"
 	"sync/atomic"
 	"testing"
@@ -31,14 +32,39 @@ func TestNewAgent(t *testing.T) {
 		t.Errorf("agent.DefaultHeader should be empty, but got: %#v", agent.DefaultHeader)
 	}
 
-	if agent.RequestHooks.Len() != 1 {
+	if agent.RequestHooks.Len() != 0 {
 		t.Errorf("agent.ResponseHooks should have a hook, but got: %#v", agent.RequestHooks)
-	} else if _, ok := agent.RequestHooks.hooks[0].(*RequestHeaderHook); !ok {
-		t.Errorf("agent.ResponseHooks should have a RequestHeaderHook and it should apply agent.DefaultHeader, but got: %#v", agent.RequestHooks)
 	}
-
 	if agent.ResponseHooks.Len() != 0 {
 		t.Errorf("agent.ResponseHooks should be empty, but got: %#v", agent.ResponseHooks)
+	}
+}
+
+func TestAgentWithClient(t *testing.T) {
+	h1 := http.Header{}
+	h2 := h1
+	if reflect.ValueOf(h1).Pointer() != reflect.ValueOf(h2).Pointer() {
+		t.Fatal("http.Header is not pointer type now")
+	}
+
+	client1 := &http.Client{}
+	agent1 := NewAgent(client1)
+
+	client2 := &http.Client{}
+	agent2 := agent1.WithClient(client2)
+
+	if agent2.Client == agent1.Client {
+		t.Errorf("agent.Client should be changed, but got: %#v", agent2.Client)
+	}
+	if reflect.ValueOf(agent2.DefaultHeader).Pointer() == reflect.ValueOf(agent1.DefaultHeader).Pointer() {
+		// SEE ALSO (Japanese...): https://qiita.com/karupanerura/items/03d6766fd8568c15fc90
+		t.Errorf("agent.DefaultHeader should be changed, but got: %#v", agent2.DefaultHeader)
+	}
+	if agent2.RequestHooks == agent1.RequestHooks {
+		t.Errorf("agent.RequestHooks should be changed, but got: %#v", agent2.RequestHooks)
+	}
+	if agent2.ResponseHooks == agent1.ResponseHooks {
+		t.Errorf("agent.ResponseHooks should be changed, but got: %#v", agent2.ResponseHooks)
 	}
 }
 

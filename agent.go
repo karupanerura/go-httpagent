@@ -13,9 +13,7 @@ func NewAgent(client Client) *Agent {
 	return &Agent{
 		Client:        client,
 		DefaultHeader: header,
-		RequestHooks: NewRequestHooks(
-			&RequestHeaderHook{Header: header, SkipIfExists: true},
-		),
+		RequestHooks:  NewRequestHooks(),
 		ResponseHooks: NewResponseHooks(),
 	}
 }
@@ -31,8 +29,14 @@ type Agent struct {
 func nop() {}
 
 func (a *Agent) Do(req *http.Request) (*http.Response, error) {
+	// apply default headers
+	err := (&RequestHeaderHook{Header: a.DefaultHeader, SkipIfExists: true}).Do(req)
+	if err != nil {
+		return nil, err
+	}
+
 	// do request hooks
-	err := a.RequestHooks.Do(req)
+	err = a.RequestHooks.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -65,4 +69,28 @@ func (a *Agent) Do(req *http.Request) (*http.Response, error) {
 	}
 
 	return res, nil
+}
+
+func (a *Agent) WithClient(client Client) *Agent {
+	return &Agent{
+		Client:         client,
+		DefaultTimeout: a.DefaultTimeout,
+		DefaultHeader:  copyHeader(a.DefaultHeader),
+		RequestHooks:   a.RequestHooks.Clone(),
+		ResponseHooks:  a.ResponseHooks.Clone(),
+	}
+}
+
+func copyHeader(src http.Header) (dst http.Header) {
+	dst = make(http.Header, len(src))
+	for k := range src {
+		if len(src) == 0 {
+			continue
+		}
+
+		dst[k] = make([]string, len(src))
+		copy(dst[k], src[k])
+	}
+
+	return
 }
