@@ -84,6 +84,7 @@ func (h *RequestDumperHook) Do(req *http.Request) error {
 	if err != nil {
 		return err
 	}
+	dump = append(dump, '\n')
 
 	var n, wrote int
 	for wrote < len(dump) {
