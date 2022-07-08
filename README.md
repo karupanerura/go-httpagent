@@ -1,6 +1,6 @@
 # go-httpagent
 
-[![Build Status](https://travis-ci.org/karupanerura/go-httpagent.svg?branch=master)](https://travis-ci.org/karupanerura/go-httpagent)
+![Build Status](https://github.com/karupanerura/go-httpagent/workflows/test/badge.svg?branch=master)
 [![codecov](https://codecov.io/gh/karupanerura/go-httpagent/branch/master/graph/badge.svg)](https://codecov.io/gh/karupanerura/go-httpagent)
 [![GoDoc](https://godoc.org/github.com/karupanerura/go-httpagent?status.svg)](http://godoc.org/github.com/karupanerura/go-httpagent)
 
