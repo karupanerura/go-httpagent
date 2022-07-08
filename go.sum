@@ -1,0 +1,4 @@
+github.com/google/go-cmp v0.5.8 h1:e6P7q2lk1O+qJJb4BtCQXlK8vWEO8V1ZeuEdJNOqZyg=
+github.com/google/go-cmp v0.5.8/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
+github.com/karupanerura/go-mock-http-response v0.0.0-20171201120521-7c242a447d45 h1:XSik/ETzj52cVbZcv7tJuUFX14XzvRX0te26UaKY0Aw=
+github.com/karupanerura/go-mock-http-response v0.0.0-20171201120521-7c242a447d45/go.mod h1:FULZ2B7LE0CUYtI8XLMYxI58AF9M6MTg6nWmZvWoFHQ=
