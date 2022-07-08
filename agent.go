@@ -75,22 +75,8 @@ func (a *Agent) WithClient(client Client) *Agent {
 	return &Agent{
 		Client:         client,
 		DefaultTimeout: a.DefaultTimeout,
-		DefaultHeader:  copyHeader(a.DefaultHeader),
+		DefaultHeader:  a.DefaultHeader.Clone(),
 		RequestHooks:   a.RequestHooks.Clone(),
 		ResponseHooks:  a.ResponseHooks.Clone(),
 	}
-}
-
-func copyHeader(src http.Header) (dst http.Header) {
-	dst = make(http.Header, len(src))
-	for k := range src {
-		if len(src) == 0 {
-			continue
-		}
-
-		dst[k] = make([]string, len(src))
-		copy(dst[k], src[k])
-	}
-
-	return
 }

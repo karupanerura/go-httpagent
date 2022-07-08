@@ -71,7 +71,6 @@ func TestAgentWithClient(t *testing.T) {
 func TestAgentDo(t *testing.T) {
 	t.Run("Passthrough", func(t *testing.T) {
 		ts := setupTestServer(t)
-		defer ts.Close()
 
 		req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 		shouldBeOK(t, DefaultAgent, req, 1)
@@ -79,7 +78,6 @@ func TestAgentDo(t *testing.T) {
 
 	t.Run("WithContextClient", func(t *testing.T) {
 		ts := setupTestServer(t)
-		defer ts.Close()
 
 		client := mockhttp.NewResponseMock(http.StatusAccepted, map[string]string{
 			"Content-Type": "text/plain",
@@ -98,7 +96,6 @@ func TestAgentDo(t *testing.T) {
 
 	t.Run("WithDefaultHeader", func(t *testing.T) {
 		ts := setupTestServer(t)
-		defer ts.Close()
 
 		agent := NewAgent(http.DefaultClient)
 		agent.DefaultHeader.Set("Test-Increment", "100")
@@ -121,7 +118,6 @@ func TestAgentDo(t *testing.T) {
 
 		t.Run("OK", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			shouldBeOK(t, agent, req, 1)
@@ -129,7 +125,6 @@ func TestAgentDo(t *testing.T) {
 
 		t.Run("NG", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			req := mustNewRequest(t, http.MethodGet, ts.URL, nil)
 			req.Header.Set("Test-Sleep", "4")
@@ -138,7 +133,6 @@ func TestAgentDo(t *testing.T) {
 
 		t.Run("NestedContext", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			ctx := context.Background()
 			ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
@@ -161,7 +155,6 @@ func TestAgentDo(t *testing.T) {
 	t.Run("RequestHook", func(t *testing.T) {
 		t.Run("OK", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			var called int
 
@@ -180,7 +173,6 @@ func TestAgentDo(t *testing.T) {
 
 		t.Run("NG", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			expectedErr := errors.New("oops")
 
@@ -198,7 +190,6 @@ func TestAgentDo(t *testing.T) {
 	t.Run("ResponseHook", func(t *testing.T) {
 		t.Run("OK", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			var called int
 
@@ -217,7 +208,6 @@ func TestAgentDo(t *testing.T) {
 
 		t.Run("NG", func(t *testing.T) {
 			ts := setupTestServer(t)
-			defer ts.Close()
 
 			expectedErr := errors.New("oops")
 
@@ -233,9 +223,9 @@ func TestAgentDo(t *testing.T) {
 	})
 }
 
-func setupTestServer(t *testing.T) *httptest.Server {
+func setupTestServer(t *testing.T) (ts *httptest.Server) {
 	var c int32
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	ts = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		count := atomic.AddInt32(&c, 1)
 		if slp := r.Header.Get("Test-Sleep"); slp != "" {
 			t.Logf("Test-Sleep: %s", slp)
@@ -258,6 +248,10 @@ func setupTestServer(t *testing.T) *httptest.Server {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprintf(w, "OK: count=%d", count)
 	}))
+	t.Cleanup(func() {
+		ts.Close()
+	})
+	return ts
 }
 
 func mustNewRequest(t *testing.T, method, u string, body io.Reader) *http.Request {
