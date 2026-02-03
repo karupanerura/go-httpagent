@@ -131,6 +131,7 @@ func (h *ResponseHooks) Clone() *ResponseHooks {
 //	dumper := &httpagent.ResponseDumperHook{Writer: os.Stderr}
 //	agent.ResponseHooks.Append(dumper)
 type ResponseDumperHook struct {
+	// Writer is the destination for the dumped response output.
 	Writer io.Writer
 }
 

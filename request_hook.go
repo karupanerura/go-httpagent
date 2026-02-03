@@ -131,6 +131,7 @@ func (h *RequestHooks) Clone() *RequestHooks {
 //	dumper := &httpagent.RequestDumperHook{Writer: os.Stderr}
 //	agent.RequestHooks.Append(dumper)
 type RequestDumperHook struct {
+	// Writer is the destination for the dumped request output.
 	Writer io.Writer
 }
 
@@ -159,11 +160,6 @@ func (h *RequestDumperHook) Do(req *http.Request) error {
 // RequestHeaderHook is a RequestHook that adds or sets headers on HTTP requests.
 // It provides flexible header manipulation with options to add, set, or conditionally set headers.
 //
-// Fields:
-//   - Header: The headers to apply to the request
-//   - Add: If true, headers are added (allowing multiple values); if false, headers are set (replacing existing values)
-//   - SkipIfExists: If true, headers are only set if they don't already exist in the request
-//
 // Example:
 //
 //	hook := &httpagent.RequestHeaderHook{
@@ -171,8 +167,16 @@ func (h *RequestDumperHook) Do(req *http.Request) error {
 //	    SkipIfExists: true,
 //	}
 type RequestHeaderHook struct {
-	Header       http.Header
-	Add          bool
+	// Header contains the headers to apply to the request.
+	Header http.Header
+
+	// Add determines whether headers are added or set.
+	// If true, headers are added (allowing multiple values).
+	// If false, headers are set (replacing existing values).
+	Add bool
+
+	// SkipIfExists determines whether to skip headers that already exist.
+	// If true, headers are only set if they don't already exist in the request.
 	SkipIfExists bool
 }
 

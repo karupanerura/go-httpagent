@@ -45,19 +45,23 @@ func NewAgent(client Client) *Agent {
 
 // Agent is an HTTP client wrapper that provides additional functionality
 // such as request/response hooks, default headers, and request timeouts.
-//
-// Fields:
-//   - Client: The underlying HTTP client used to execute requests
-//   - DefaultTimeout: Timeout duration applied to all requests (0 means no timeout)
-//   - DefaultHeader: Headers automatically added to all requests (unless already present)
-//   - RequestHooks: Hooks executed before sending the request
-//   - ResponseHooks: Hooks executed after receiving the response
 type Agent struct {
-	Client         Client
+	// Client is the underlying HTTP client used to execute requests.
+	Client Client
+
+	// DefaultTimeout is the timeout duration applied to all requests.
+	// A zero value means no timeout.
 	DefaultTimeout time.Duration
-	DefaultHeader  http.Header
-	RequestHooks   *RequestHooks
-	ResponseHooks  *ResponseHooks
+
+	// DefaultHeader contains headers automatically added to all requests
+	// unless they are already present in the request.
+	DefaultHeader http.Header
+
+	// RequestHooks contains hooks executed before sending the request.
+	RequestHooks *RequestHooks
+
+	// ResponseHooks contains hooks executed after receiving the response.
+	ResponseHooks *ResponseHooks
 }
 
 func nop() {}
