@@ -7,8 +7,6 @@ jobs:
       matrix:
         go:
           - "^1.25.0"
-          - "^1.24.0"
-          - "^1.23.0"
     name: Go ${{ matrix.go }}
     steps:
       - uses: actions/checkout@v4
