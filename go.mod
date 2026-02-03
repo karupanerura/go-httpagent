@@ -1,6 +1,6 @@
 module github.com/karupanerura/go-httpagent
 
-go 1.22
+go 1.23
 
 toolchain go1.24.12
 
